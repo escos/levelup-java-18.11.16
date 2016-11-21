@@ -35,6 +35,7 @@ public class MyTasks {
         System.out.println("Содержимое файла JSON:");
         printTaskList(jsonTasks);
         List<Task> taskList = checkTasksAndPrintResultList(jsonTasks, serialTasks);
+        int flag = 0;
         boolean id = true;
         while (id) {
             System.out.println("Введите команду:");
@@ -62,15 +63,17 @@ public class MyTasks {
                         break;
                     case QUIT:
                         System.out.println("Выберите действие, выполняемое перед выходом из программы:" +
-                                " 0 - сериализация, не 0 - сохранение в фомате JSON");
+                                           " 0 - сериализация, не 0 - сохранение в фомате JSON");
                         int j = sc.nextInt();
                         if (j == 0) {
                             write((Serializable) serialTasks);
                         } else {
                             writeToFile(parsefromJson(saveToJson(gson, jsonTasks), gson));
                         }
+                        flag = -1;
                         break;
                 }
+                if (flag == -1) break;
             } catch (IllegalArgumentException ex) {
                 System.out.println("Команда \"" + command + "\" введена неверно!");
                 id = false;
