@@ -14,9 +14,11 @@ import java.text.*;
 
 public class MyTasks {
     private static final String SERIAL_NAME =
-                              "C:\\Users\\Роман\\Desktop\\levelup-java-18.11.16\\src\\main\\files\\serialTasks.txt";
+            "C:\\Users\\Роман\\Desktop\\levelup-java-18.11.16\\src\\main\\files\\serialTasks.txt";
     private static final String JSON_NAME =
-                              "C:\\Users\\Роман\\Desktop\\levelup-java-18.11.16\\src\\main\\files\\tasksJSON.txt";
+            "C:\\Users\\Роман\\Desktop\\levelup-java-18.11.16\\src\\main\\files\\tasksJSON.txt";
+    private static final String RESULT_NAME =
+            "C:\\Users\\Роман\\Desktop\\levelup-java-18.11.16\\src\\main\\files\\result.txt";
     static Scanner sc = new Scanner(System.in);
     static SimpleDateFormat format1 = new SimpleDateFormat("dd.MM.yyyy hh:mm");
 
@@ -28,6 +30,7 @@ public class MyTasks {
         EDITJ,
         DELJ,
         DELS,
+        SAVE,
         QUIT,
     }
 
@@ -39,6 +42,8 @@ public class MyTasks {
         printTaskList(serialTasks);
         System.out.println("Содержимое файла tasksJSON.txt:");
         printTaskList(jsonTasks);
+        if (readListFile(RESULT_NAME).get(0).equals("11")) System.out.println("Последней выполнялась сериализация");
+        else System.out.println("Последним выполнялось сохранение в JSON");
         int flag = 0;
         boolean id = true;
         while (id) {
@@ -81,7 +86,7 @@ public class MyTasks {
                         if ((N > jsonTasks.size()) || (N < 1)) {
                             System.out.println("Задачи с таким номером не существует!");
                         } else {
-                            jsonTasks.remove(N-1);
+                            jsonTasks.remove(N - 1);
                             writeToFile(parsefromJson(saveToJson(gson, jsonTasks), gson), JSON_NAME);
                         }
                         break;
@@ -91,19 +96,24 @@ public class MyTasks {
                         if ((N > serialTasks.size()) || (N < 1)) {
                             System.out.println("Задачи с таким номером не существует!");
                         } else {
-                            serialTasks.remove(N-1);
+                            serialTasks.remove(N - 1);
                             write((Serializable) serialTasks);
                         }
                         break;
-                    case QUIT:
+                    case SAVE:
                         System.out.println("Выберите действие, выполняемое перед выходом из программы:" +
-                                            " 0 - сериализация, отличное от 0 число - сохранение в фомате JSON");
+                                " 0 - сериализация, отличное от 0 число - сохранение в фомате JSON");
                         int j = sc.nextInt();
                         if (j == 0) {
                             write((Serializable) serialTasks);
+                            writeFlag("11");
                         } else {
                             writeToFile(parsefromJson(saveToJson(gson, jsonTasks), gson), JSON_NAME);
+                            writeFlag("22");
                         }
+                        flag = -1;
+                        break;
+                    case QUIT:
                         flag = -1;
                         break;
                 }
@@ -122,6 +132,16 @@ public class MyTasks {
                 writer.write(task.description + " " + format1.format(task.date.getTime()));
                 writer.newLine();
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // write flag
+    private static void writeFlag(String st) {
+        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(RESULT_NAME), StandardCharsets.UTF_8)) {
+            writer.write(st);
+            //writer.newLine();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -248,10 +268,12 @@ public class MyTasks {
         for (int i = 0; i < taskList2.size() - 1; i++) {
             for (int j = i + 1; j < taskList2.size(); j++) {
                 if (taskList2.get(i).description.equals(taskList2.get(j).description)) {
+                    if (taskList2.get(i).date.equals(taskList2.get(j).date)) taskList2.remove(j);
                     System.out.println("Обнаружено две задачи с названием: " + taskList2.get(i).description +
                             "но с разными датами выполнения");
-                    System.out.println("Выберите нужную дату для данной задачи :" +
-                            " 0 - оставляем первую дату , любое число кроме 0 - оставляем вторую дату");
+                    System.out.println("Выберите необходимую дату для данной задачи :" +
+                            "при вводе 0 - дата: " + format1.format(taskList2.get(j).date.getTime()) + " , " +
+                            "при вводе отличного от 0 числа- дата: " + format1.format(taskList2.get(i).date.getTime()));
                     if (sc.nextInt() == 0) taskList2.remove(i);
                     else taskList2.remove(j);
                 }
