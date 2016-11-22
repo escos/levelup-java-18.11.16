@@ -24,14 +24,14 @@ public class MyTasks {
 
     //перечисления команд управления списком
     private enum Commands {
-        ADD,
-        LIST,
-        EDITS,
-        EDITJ,
-        DELJ,
-        DELS,
-        SAVE,
-        QUIT,
+        ADD,   // добавить задачу
+        LIST,  // вывести полный список задач
+        EDITS, // редактировать список задач в файле сериализации
+        EDITJ, // редактировать список задач в файле JSON
+        DELJ,  // удалить задачу в файле JSON
+        DELS,  // удалить задачу в файле сериализации
+        SAVE,  // сохранить добавленную задачу
+        QUIT,  //выход
     }
 
     public static void main(String[] args) throws IOException, ParseException {
@@ -268,7 +268,10 @@ public class MyTasks {
         for (int i = 0; i < taskList2.size() - 1; i++) {
             for (int j = i + 1; j < taskList2.size(); j++) {
                 if (taskList2.get(i).description.equals(taskList2.get(j).description)) {
-                    if (taskList2.get(i).date.equals(taskList2.get(j).date)) taskList2.remove(j);
+                    if (taskList2.get(i).date.equals(taskList2.get(j).date)) {
+                        taskList2.remove(j);
+                        break;
+                    }
                     System.out.println("Обнаружено две задачи с названием: " + taskList2.get(i).description +
                             "но с разными датами выполнения");
                     System.out.println("Выберите необходимую дату для данной задачи :" +
