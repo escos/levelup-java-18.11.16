@@ -13,8 +13,10 @@ import java.util.*;
 import java.text.*;
 
 public class MyTasks {
-    private static final String SERIAL_NAME = "C:\\Users\\Роман\\Desktop\\levelup-java-18.11.16\\src\\main\\files\\tasks.txt";
-    private static final String JSON_NAME = "C:\\Users\\Роман\\Desktop\\levelup-java-18.11.16\\src\\main\\files\\tasksJSON.txt";
+    private static final String SERIAL_NAME =
+                              "C:\\Users\\Роман\\Desktop\\levelup-java-18.11.16\\src\\main\\files\\serialTasks.txt";
+    private static final String JSON_NAME =
+                              "C:\\Users\\Роман\\Desktop\\levelup-java-18.11.16\\src\\main\\files\\tasksJSON.txt";
     static Scanner sc = new Scanner(System.in);
     static SimpleDateFormat format1 = new SimpleDateFormat("dd.MM.yyyy hh:mm");
 
@@ -22,8 +24,10 @@ public class MyTasks {
     private enum Commands {
         ADD,
         LIST,
-        CHANGE,
-        DEL,
+        EDITS,
+        EDITJ,
+        DELJ,
+        DELS,
         QUIT,
     }
 
@@ -31,11 +35,10 @@ public class MyTasks {
         List<Task> jsonTasks = readFromFile(readListFile(JSON_NAME));
         List<Task> serialTasks = readFromSerializeFile();
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        System.out.println("Содержимое файла сериализации:");
+        System.out.println("Содержимое файла serialTasks.txt:");
         printTaskList(serialTasks);
-        System.out.println("Содержимое файла JSON:");
+        System.out.println("Содержимое файла tasksJSON.txt:");
         printTaskList(jsonTasks);
-        List<Task> taskList = checkTasksAndPrintResultList(jsonTasks, serialTasks);
         int flag = 0;
         boolean id = true;
         while (id) {
@@ -51,34 +54,54 @@ public class MyTasks {
                     case LIST:
                         //printTaskList(jsonTasks);
                         //printTaskList(serialTasks);
-                        printTaskList(taskList);
+                        List<Task> taskList = checkTasksAndPrintResultList(jsonTasks, serialTasks);
                         break;
-                    case CHANGE:
-                        System.out.println("Укажите номер задачи из списка, которую нужно корректировать:");
+                    case EDITS:
+                        System.out.println("Укажите номер задачи из файла serialize, которую нужно корректировать:");
                         int n = sc.nextByte();
-                        if ((n > taskList.size()) || (n < 1)) {
+                        if ((n > serialTasks.size()) || (n < 1)) {
                             System.out.println("Задачи с таким номером не существует!");
                         } else {
-                            changeTask(taskList.get(n - 1));
+                            changeTask(serialTasks.get(n - 1));
+                            write((Serializable) serialTasks);
                         }
                         break;
-                    case DEL:
-                        System.out.println("Введите какой элемент необходимо удалить");
-                        int N = sc.nextByte();
-                        if ((N > taskList.size()) || (N < 1)) {
+                    case EDITJ:
+                        System.out.println("Укажите номер задачи из файла JSON, которую нужно корректировать:");
+                        n = sc.nextByte();
+                        if ((n > jsonTasks.size()) || (n < 1)) {
                             System.out.println("Задачи с таким номером не существует!");
                         } else {
-                            taskList.remove(N);
+                            changeTask(jsonTasks.get(n - 1));
+                        }
+                        break;
+                    case DELJ:
+                        System.out.println("Введите какой элемент файла tasksJSON.txt необходимо удалить");
+                        int N = sc.nextByte();
+                        if ((N > jsonTasks.size()) || (N < 1)) {
+                            System.out.println("Задачи с таким номером не существует!");
+                        } else {
+                            jsonTasks.remove(N-1);
+                            writeToFile(parsefromJson(saveToJson(gson, jsonTasks), gson), JSON_NAME);
+                        }
+                        break;
+                    case DELS:
+                        System.out.println("Введите какой элемент файла serialTasks.txt необходимо удалить");
+                        N = sc.nextByte();
+                        if ((N > serialTasks.size()) || (N < 1)) {
+                            System.out.println("Задачи с таким номером не существует!");
+                        } else {
+                            serialTasks.remove(N-1);
+                            write((Serializable) serialTasks);
                         }
                         break;
                     case QUIT:
                         System.out.println("Выберите действие, выполняемое перед выходом из программы:" +
-                                " 0 - сериализация, не 0 - сохранение в фомате JSON");
+                                            " 0 - сериализация, отличное от 0 число - сохранение в фомате JSON");
                         int j = sc.nextInt();
                         if (j == 0) {
                             write((Serializable) serialTasks);
                         } else {
-
                             writeToFile(parsefromJson(saveToJson(gson, jsonTasks), gson), JSON_NAME);
                         }
                         flag = -1;
