@@ -35,14 +35,15 @@ public class MyTasks {
     }
 
     public static void main(String[] args) throws IOException, ParseException {
-        List<Task> jsonTasks = readFromFile(readListFile(JSON_NAME));
-        List<Task> serialTasks = readFromSerializeFile();
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        System.out.println("Содержимое файла serialTasks.txt:");
-        printTaskList(serialTasks);
+        String s = readFileGsonToString(JSON_NAME);
+        List<Task> jsonTasks = parsefromJson(s, gson);
         System.out.println("Содержимое файла tasksJSON.txt:");
         printTaskList(jsonTasks);
-        if (readListFile(RESULT_NAME).get(0).equals("11")) System.out.println("Последней выполнялась сериализация");
+        List<Task> serialTasks = readFromSerializeFile();
+        System.out.println("Содержимое файла serialTasks.txt:");
+        printTaskList(serialTasks);
+        if (readFileToList(RESULT_NAME).get(0).equals("11")) System.out.println("Последней выполнялась сериализация");
         else System.out.println("Последним выполнялось сохранение в JSON");
         int flag = 0;
         boolean id = true;
@@ -57,9 +58,7 @@ public class MyTasks {
                         serialTasks.add(task);
                         break;
                     case LIST:
-                        //printTaskList(jsonTasks);
-                        //printTaskList(serialTasks);
-                        List<Task> taskList = checkTasksAndPrintResultList(jsonTasks, serialTasks);
+                        checkTasksAndPrintResultList(jsonTasks, serialTasks);
                         break;
                     case EDITS:
                         System.out.println("Укажите номер задачи из файла serialize, которую нужно корректировать:");
@@ -68,7 +67,7 @@ public class MyTasks {
                             System.out.println("Задачи с таким номером не существует!");
                         } else {
                             changeTask(serialTasks.get(n - 1));
-                            write((Serializable) serialTasks);
+                            serializeList((Serializable) serialTasks);
                         }
                         break;
                     case EDITJ:
@@ -78,6 +77,8 @@ public class MyTasks {
                             System.out.println("Задачи с таким номером не существует!");
                         } else {
                             changeTask(jsonTasks.get(n - 1));
+                            String str = saveToJson(gson, jsonTasks);
+                            writeToFileGson(str, JSON_NAME);
                         }
                         break;
                     case DELJ:
@@ -87,7 +88,8 @@ public class MyTasks {
                             System.out.println("Задачи с таким номером не существует!");
                         } else {
                             jsonTasks.remove(N - 1);
-                            writeToFile(parsefromJson(saveToJson(gson, jsonTasks), gson), JSON_NAME);
+                            String str = saveToJson(gson, jsonTasks);
+                            writeToFileGson(str, JSON_NAME);
                         }
                         break;
                     case DELS:
@@ -97,7 +99,7 @@ public class MyTasks {
                             System.out.println("Задачи с таким номером не существует!");
                         } else {
                             serialTasks.remove(N - 1);
-                            write((Serializable) serialTasks);
+                            serializeList((Serializable) serialTasks);
                         }
                         break;
                     case SAVE:
@@ -105,10 +107,11 @@ public class MyTasks {
                                 " 0 - сериализация, отличное от 0 число - сохранение в фомате JSON");
                         int j = sc.nextInt();
                         if (j == 0) {
-                            write((Serializable) serialTasks);
+                            serializeList((Serializable) serialTasks);
                             writeFlag("11");
                         } else {
-                            writeToFile(parsefromJson(saveToJson(gson, jsonTasks), gson), JSON_NAME);
+                            String str = saveToJson(gson, jsonTasks);
+                            writeToFileGson(str, JSON_NAME);
                             writeFlag("22");
                         }
                         flag = -1;
@@ -126,12 +129,10 @@ public class MyTasks {
     }
 
     // запись в файл
-    private static void writeToFile(List<Task> taskList, String file) {
+    private static void writeToFileGson(String tasks, String file) {
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(file), StandardCharsets.UTF_8)) {
-            for (Task task : taskList) {
-                writer.write(task.description + " " + format1.format(task.date.getTime()));
-                writer.newLine();
-            }
+            writer.write(tasks);
+            writer.newLine();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -148,15 +149,31 @@ public class MyTasks {
     }
 
     // распечатка списка задач
-    public static void printTaskList(List<Task> taskList) {
+    private static void printTaskList(List<Task> taskList) {
         System.out.println("Задач: " + taskList.size());
         for (int i = 0; i < taskList.size(); i++) {
-            System.out.println("Задача " + i + ": " + taskList.get(i).description + " дата выполнения: " + format1.format(taskList.get(i).date.getTime()));
+            System.out.printf("Задача %2d: %-30s | дата выполнения: %s \n",
+                    (i + 1), taskList.get(i).description, format1.format(taskList.get(i).date.getTime()));
         }
     }
 
+    // чтение из файла gson в строку
+    private static String readFileGsonToString(String FILENAME) {
+        String s = "";
+        try {
+            List<String> str = Files.readAllLines(Paths.get(FILENAME), StandardCharsets.UTF_8);
+            for (int i = 0; i < str.size(); i++) {
+                s += str.get(i);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            Collections.emptyList();
+        }
+        return s;
+    }
+
     // читаем из файла в список строк
-    private static List<String> readListFile(String FILENAME) {
+    private static List<String> readFileToList(String FILENAME) {
         try {
             return Files.readAllLines(Paths.get(FILENAME), StandardCharsets.UTF_8);
         } catch (IOException e) {
@@ -165,14 +182,7 @@ public class MyTasks {
         }
     }
 
-    public static List<Task> readFromFile(List<String> s) {
-        if (s != null) {
-            return toTasks(s);
-        }
-        return Collections.emptyList();
-    }
-
-    //parsing задач из файла
+    //parsing задач из строки
     private static Task parseDateAndDescription(String s) {
         String s1 = s.substring(s.length() - 16);
         String description = s.substring(0, s.length() - 16);
@@ -185,14 +195,6 @@ public class MyTasks {
             cal = null;
         }
         return new Task(description, cal);
-    }
-
-    private static List<Task> toTasks(List<String> s) {
-        List<Task> taskList = new ArrayList<>();
-        for (int i = 0; i < s.size(); i++) {
-            taskList.add(parseDateAndDescription(s.get(i)));
-        }
-        return taskList;
     }
 
     //изменение параметров задач
@@ -233,7 +235,7 @@ public class MyTasks {
     }
 
     //сериализация
-    private static void write(Serializable tasks) {
+    private static void serializeList(Serializable tasks) {
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(SERIAL_NAME);
@@ -245,17 +247,16 @@ public class MyTasks {
         }
     }
 
-    //parse from JSON
+    //parsing из JSON
     private static List<Task> parsefromJson(String tasksGson, Gson gson) {
         List<Task> parsedTasks = gson.fromJson(tasksGson, new TypeToken<List<Task>>() {
         }.getType());
         return parsedTasks;
     }
 
-    // save to JSON
+    // сохранение в JSON
     private static String saveToJson(Gson gson, List<Task> taskList) {
         String tasksGson = gson.toJson(taskList);
-
         return tasksGson;
     }
 
@@ -273,8 +274,8 @@ public class MyTasks {
                         break;
                     }
                     System.out.println("Обнаружено две задачи с названием: " + taskList2.get(i).description +
-                            "но с разными датами выполнения");
-                    System.out.println("Выберите необходимую дату для данной задачи :" +
+                            ", но с разными датами выполнения");
+                    System.out.println("Выберите необходимую дату для данной задачи: " +
                             "при вводе 0 - дата: " + format1.format(taskList2.get(j).date.getTime()) + " , " +
                             "при вводе отличного от 0 числа- дата: " + format1.format(taskList2.get(i).date.getTime()));
                     if (sc.nextInt() == 0) taskList2.remove(i);
@@ -284,10 +285,11 @@ public class MyTasks {
         }
         System.out.println("Задач всего: " + taskList2.size());
         for (int i = 0; i < taskList2.size(); i++) {
-            System.out.println("Задача " + i + ": " + taskList2.get(i).description + " дата выполнения: "
-                    + format1.format(taskList2.get(i).date.getTime()));
+            System.out.printf("Задача %2d: %-30s | дата выполнения: %s \n",
+                    (i + 1), taskList2.get(i).description, format1.format(taskList2.get(i).date.getTime()));
         }
         return taskList2;
     }
+
 }
 
