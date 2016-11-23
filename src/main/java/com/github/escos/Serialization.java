@@ -37,7 +37,7 @@ public class Serialization {
         }
     }
 
-    //сериализация
+    //сериализация 1 задачи
     public void serializeTask(Serializable task, String fileName) {
         FileOutputStream fos = null;
         try {
@@ -48,5 +48,22 @@ public class Serialization {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    //десериализация 1 задачи
+    public Task readFromTaskFile(String fileName) {
+        FileInputStream fis = null;
+        Task task = null;
+        try {
+            fis = new FileInputStream(fileName);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            task = (Task) ois.readObject();
+            ois.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return task;
     }
 }
