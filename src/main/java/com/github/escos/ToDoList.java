@@ -2,6 +2,7 @@ package com.github.escos;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.*;
@@ -12,11 +13,7 @@ import java.text.ParseException;
 import java.util.*;
 import java.text.*;
 
-public class MyTasks {
-    private static final String SERIAL_NAME =
-            "C:\\Users\\Роман\\Desktop\\levelup-java-18.11.16\\src\\main\\files\\serialTasks.txt";
-    private static final String JSON_NAME =
-            "C:\\Users\\Роман\\Desktop\\levelup-java-18.11.16\\src\\main\\files\\tasksJSON.txt";
+public class ToDoList {
     private static final String RESULT_NAME =
             "C:\\Users\\Роман\\Desktop\\levelup-java-18.11.16\\src\\main\\files\\result.txt";
     static Scanner sc = new Scanner(System.in);
@@ -36,11 +33,12 @@ public class MyTasks {
 
     public static void main(String[] args) throws IOException, ParseException {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String s = readFileGsonToString(JSON_NAME);
-        List<Task> jsonTasks = parsefromJson(s, gson);
+        JsonConvert jsonConvert = new JsonConvert();
+        Serialization serialization = new Serialization();
+        List<Task> jsonTasks = jsonConvert.parsefromJson(jsonConvert.readFileJsonToString(), gson);
+        List<Task> serialTasks = serialization.readFromSerializeFile();
         System.out.println("Содержимое файла tasksJSON.txt:");
         printTaskList(jsonTasks);
-        List<Task> serialTasks = readFromSerializeFile();
         System.out.println("Содержимое файла serialTasks.txt:");
         printTaskList(serialTasks);
         if (readFileToList(RESULT_NAME).get(0).equals("11")) System.out.println("Последней выполнялась сериализация");
@@ -66,8 +64,8 @@ public class MyTasks {
                         if ((n > serialTasks.size()) || (n < 1)) {
                             System.out.println("Задачи с таким номером не существует!");
                         } else {
-                            changeTask(serialTasks.get(n - 1));
-                            serializeList((Serializable) serialTasks);
+                            Task.changeTask(serialTasks.get(n - 1));
+                            serialization.serializeList((Serializable) serialTasks);
                         }
                         break;
                     case EDITJ:
@@ -76,9 +74,8 @@ public class MyTasks {
                         if ((n > jsonTasks.size()) || (n < 1)) {
                             System.out.println("Задачи с таким номером не существует!");
                         } else {
-                            changeTask(jsonTasks.get(n - 1));
-                            String str = saveToJson(gson, jsonTasks);
-                            writeToFileGson(str, JSON_NAME);
+                            Task.changeTask(jsonTasks.get(n - 1));
+                            jsonConvert.writeToFileGson(jsonConvert.saveToJson(gson, jsonTasks));
                         }
                         break;
                     case DELJ:
@@ -88,8 +85,7 @@ public class MyTasks {
                             System.out.println("Задачи с таким номером не существует!");
                         } else {
                             jsonTasks.remove(N - 1);
-                            String str = saveToJson(gson, jsonTasks);
-                            writeToFileGson(str, JSON_NAME);
+                            jsonConvert.writeToFileGson(jsonConvert.saveToJson(gson, jsonTasks));
                         }
                         break;
                     case DELS:
@@ -99,7 +95,7 @@ public class MyTasks {
                             System.out.println("Задачи с таким номером не существует!");
                         } else {
                             serialTasks.remove(N - 1);
-                            serializeList((Serializable) serialTasks);
+                            serialization.serializeList((Serializable) serialTasks);
                         }
                         break;
                     case SAVE:
@@ -107,11 +103,11 @@ public class MyTasks {
                                 " 0 - сериализация, отличное от 0 число - сохранение в фомате JSON");
                         int j = sc.nextInt();
                         if (j == 0) {
-                            serializeList((Serializable) serialTasks);
+                            serialization.serializeList((Serializable) serialTasks);
                             writeFlag("11");
                         } else {
-                            String str = saveToJson(gson, jsonTasks);
-                            writeToFileGson(str, JSON_NAME);
+                            String str = jsonConvert.saveToJson(gson, jsonTasks);
+                            jsonConvert.writeToFileGson(str);
                             writeFlag("22");
                         }
                         flag = -1;
@@ -128,48 +124,13 @@ public class MyTasks {
         }
     }
 
-    // запись в файл
-    private static void writeToFileGson(String tasks, String file) {
-        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(file), StandardCharsets.UTF_8)) {
-            writer.write(tasks);
-            writer.newLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     // write flag
     private static void writeFlag(String st) {
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(RESULT_NAME), StandardCharsets.UTF_8)) {
             writer.write(st);
-            //writer.newLine();
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    // распечатка списка задач
-    private static void printTaskList(List<Task> taskList) {
-        System.out.println("Задач: " + taskList.size());
-        for (int i = 0; i < taskList.size(); i++) {
-            System.out.printf("Задача %2d: %-30s | дата выполнения: %s \n",
-                    (i + 1), taskList.get(i).description, format1.format(taskList.get(i).date.getTime()));
-        }
-    }
-
-    // чтение из файла gson в строку
-    private static String readFileGsonToString(String FILENAME) {
-        String s = "";
-        try {
-            List<String> str = Files.readAllLines(Paths.get(FILENAME), StandardCharsets.UTF_8);
-            for (int i = 0; i < str.size(); i++) {
-                s += str.get(i);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            Collections.emptyList();
-        }
-        return s;
     }
 
     // читаем из файла в список строк
@@ -182,82 +143,13 @@ public class MyTasks {
         }
     }
 
-    //parsing задач из строки
-    private static Task parseDateAndDescription(String s) {
-        String s1 = s.substring(s.length() - 16);
-        String description = s.substring(0, s.length() - 16);
-        Calendar cal;
-        try {
-            cal = Calendar.getInstance();
-            cal.setTime(format1.parse(s1));
-        } catch (ParseException e) {
-            e.printStackTrace();
-            cal = null;
+    // распечатка списка задач
+    private static void printTaskList(List<Task> taskList) {
+        System.out.println("Задач: " + taskList.size());
+        for (int i = 0; i < taskList.size(); i++) {
+            System.out.printf("Задача %2d: %-30s | дата выполнения: %s \n",
+                    (i + 1), taskList.get(i).description, format1.format(taskList.get(i).date.getTime()));
         }
-        return new Task(description, cal);
-    }
-
-    //изменение параметров задач
-    private static Task changeTask(Task task) {
-        System.out.println("Желаете изменить название задачи?");
-        if (sc.nextBoolean()) {
-            System.out.println("Введите новое название задачи");
-            task.description = sc.next();
-        }
-        System.out.println("Желаете изменить дату выполнения задачи?");
-        if (sc.nextBoolean()) {
-            System.out.println("Введите новую дату выполнения задачи");
-            Calendar date = new GregorianCalendar();
-            date.set(Calendar.YEAR, sc.nextInt());
-            date.set(Calendar.MONTH, sc.nextInt());
-            date.set(Calendar.DAY_OF_MONTH, sc.nextInt());
-            date.set(Calendar.HOUR, sc.nextInt());
-            date.set(Calendar.MINUTE, sc.nextInt());
-        }
-        return task;
-    }
-
-    //десериализация
-    private static List<Task> readFromSerializeFile() {
-        FileInputStream fis = null;
-        List<Task> tasks = null;
-        try {
-            fis = new FileInputStream(SERIAL_NAME);
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            tasks = (List<Task>) ois.readObject();
-            ois.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return tasks;
-    }
-
-    //сериализация
-    private static void serializeList(Serializable tasks) {
-        FileOutputStream fos = null;
-        try {
-            fos = new FileOutputStream(SERIAL_NAME);
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(tasks);
-            oos.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    //parsing из JSON
-    private static List<Task> parsefromJson(String tasksGson, Gson gson) {
-        List<Task> parsedTasks = gson.fromJson(tasksGson, new TypeToken<List<Task>>() {
-        }.getType());
-        return parsedTasks;
-    }
-
-    // сохранение в JSON
-    private static String saveToJson(Gson gson, List<Task> taskList) {
-        String tasksGson = gson.toJson(taskList);
-        return tasksGson;
     }
 
     // проверка, есть ли совпадения с двух списках
@@ -290,6 +182,5 @@ public class MyTasks {
         }
         return taskList2;
     }
-
 }
 
