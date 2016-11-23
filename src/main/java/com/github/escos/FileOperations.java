@@ -10,16 +10,17 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 
-class MyFileCounter implements FileFilter {
+class FileOperations implements FileFilter {
     private static final String RESULT_NAME = "src\\main\\files\\result.txt";
 
     public boolean accept(File pathname) {
         return pathname.isFile() && pathname.getName().endsWith(".txt");
     }
+
     // подсчет количества файлов в папке
     public int counter() {
         File f = new File("C:\\Users\\Роман\\Desktop\\levelup-java-18.11.16\\src\\main\\tasks");
-        MyFileCounter filter = new MyFileCounter();
+        FileOperations filter = new FileOperations();
         File[] list = f.listFiles(filter);
         return list.length;
     }
@@ -32,6 +33,7 @@ class MyFileCounter implements FileFilter {
             e.printStackTrace();
         }
     }
+
     // читаем из файла в список строк
     public List<String> readFileToList() {
         try {

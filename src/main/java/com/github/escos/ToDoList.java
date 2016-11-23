@@ -14,7 +14,7 @@ import java.util.*;
 import java.text.*;
 
 public class ToDoList {
-    private static final String DIR_NAME = "C:\\Users\\Роман\\Desktop\\levelup-java-18.11.16\\src\\main\\tasks\\";
+    private static final String DIR_NAME = "src\\main\\tasks\\";
     static Scanner sc = new Scanner(System.in);
     static SimpleDateFormat format1 = new SimpleDateFormat("dd.MM.yyyy hh:mm");
 
@@ -35,7 +35,7 @@ public class ToDoList {
         SaveThread saveThread = new SaveThread();
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         JsonConvert jsonConvert = new JsonConvert();
-        MyFileCounter myCounter = new MyFileCounter();
+        FileOperations fileOperations = new FileOperations();
         Serialization serialization = new Serialization();
         List<Task> jsonTasks = jsonConvert.parsefromJson(jsonConvert.readFileJsonToString(), gson);
         List<Task> serialTasks = serialization.readFromSerializeFile();
@@ -44,7 +44,7 @@ public class ToDoList {
         printTaskList(jsonTasks);
         System.out.println("Содержимое файла serialTasks.txt:");
         printTaskList(serialTasks);
-        if (myCounter.readFileToList().get(0).equals("11")) System.out.println("Последней выполнялась сериализация");
+        if (fileOperations.readFileToList().get(0).equals("11")) System.out.println("Последней выполнялась сериализация");
         else System.out.println("Последним выполнялось сохранение в JSON");
         saveThread.start();
         int flag = 0;
@@ -108,20 +108,20 @@ public class ToDoList {
                         int j = sc.nextInt();
                         if (j == 0) {
                             serialization.serializeList((Serializable) serialTasks);
-                            myCounter.writeFlag("11");
+                            fileOperations.writeFlag("11");
                         } else {
                             String str = jsonConvert.saveToJson(gson, jsonTasks);
                             jsonConvert.writeToFileGson(str);
-                            myCounter.writeFlag("22");
+                            fileOperations.writeFlag("22");
                         }
                         flag = -1;
                         break;
                     case LOAD:
                         System.out.println("Загрузка списка задач в файл tasks.txt");
                         List<Task> tasks = new ArrayList<>();
-                        for (int i = 0; i < myCounter.counter(); i++) {
+                        for (int i = 0; i < fileOperations.counter(); i++) {
                             tasks.add(serialization.readFromTaskFile(DIR_NAME + i + "_task.txt"));
-                            System.out.printf("\r % 5d %%   ", (i + 1) * 100 / myCounter.counter());
+                            System.out.printf("\r % 5d %%   ", (i + 1) * 100 / fileOperations.counter());
                             try {
                                 SaveThread.sleep(1500);
                             } catch (InterruptedException e) {
