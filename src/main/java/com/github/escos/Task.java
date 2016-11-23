@@ -17,8 +17,9 @@ public class Task implements Serializable {
     }
 
     public static Task createTask() {
-        System.out.println("Введите название задачи: ");
-        String description = sc.nextLine();
+        //System.out.println("Введите название задачи: ");
+        //String description = sc.nextLine();
+        String description = "Do_something____"+gen.nextInt(50);
         Calendar date = new GregorianCalendar();
         while (true) {
             //System.out.println("Введите дату выполнения задачи в формате(dd.mm.yyyy hh:mm:ss): ");

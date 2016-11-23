@@ -55,9 +55,12 @@ public class ToDoList {
             try {
                 switch (Commands.valueOf(command)) {
                     case ADD:
-                        Task task = Task.createTask();
-                        jsonTasks.add(task);
-                        serialTasks.add(task);
+                        System.out.println("Введите какое количество задач необходимо добавить: ");
+                        int num = sc.nextByte();
+                        for (int i = 0; i < num; i++) {
+                            jsonTasks.add(Task.createTask());
+                            serialTasks.add(Task.createTask());
+                        }
                         break;
                     case LIST:
                         checkTasksAndPrintResultList(jsonTasks, serialTasks);
