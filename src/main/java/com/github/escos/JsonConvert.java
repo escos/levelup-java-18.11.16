@@ -13,7 +13,7 @@ import java.util.List;
 
 public class JsonConvert {
     public static final String JSON_NAME =
-            "C:\\Users\\Роман\\Desktop\\levelup-java-18.11.16\\src\\main\\files\\tasksJSON.txt";
+            "src\\main\\files\\tasksJSON.txt";
 
     // чтение из файла json в строку
     public  String readFileJsonToString() {

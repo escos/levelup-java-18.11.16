@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Serialization {
     public static final String SERIAL_NAME =
-            "C:\\Users\\Роман\\Desktop\\levelup-java-18.11.16\\src\\main\\files\\serialTasks.txt";
+            "src\\main\\files\\serialTasks.txt";
 
     //десериализация
     public List<Task> readFromSerializeFile() {
@@ -31,6 +31,19 @@ public class Serialization {
             fos = new FileOutputStream(SERIAL_NAME);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(tasks);
+            oos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //сериализация
+    public void serializeTask(Serializable task, String fileName) {
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(fileName);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(task);
             oos.close();
         } catch (IOException e) {
             e.printStackTrace();
