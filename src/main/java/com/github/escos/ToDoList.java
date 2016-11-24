@@ -51,7 +51,7 @@ public class ToDoList {
         boolean id = true;
         while (id) {
             System.out.println("Введите команду:");
-            String command = sc.next();
+            String command = sc.next().toUpperCase();
             try {
                 switch (Commands.valueOf(command)) {
                     case ADD:
