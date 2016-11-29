@@ -40,13 +40,13 @@ public class ToDoList {
         List<Task> jsonTasks = jsonConvert.parsefromJson(jsonConvert.readFileJsonToString(), gson);
         List<Task> serialTasks = serialization.readFromSerializeFile();
 
-        System.out.println("Содержимое файла tasksJSON.txt:");
-        printTaskList(jsonTasks);
-        System.out.println("Содержимое файла serialTasks.txt:");
-        printTaskList(serialTasks);
+//        System.out.println("Содержимое файла tasksJSON.txt:");
+//        printTaskList(jsonTasks);
+//        System.out.println("Содержимое файла serialTasks.txt:");
+//        printTaskList(serialTasks);
         if (fileOperations.readFileToList().get(0).equals("11")) System.out.println("Последней выполнялась сериализация");
         else System.out.println("Последним выполнялось сохранение в JSON");
-        saveThread.start();
+        //saveThread.start();
         int flag = 0;
         boolean id = true;
         while (id) {
@@ -56,7 +56,7 @@ public class ToDoList {
                 switch (Commands.valueOf(command)) {
                     case ADD:
                         System.out.println("Введите какое количество задач необходимо добавить: ");
-                        int num = sc.nextByte();
+                        int num = sc.nextInt();
                         for (int i = 0; i < num; i++) {
                             jsonTasks.add(Task.createTask());
                             serialTasks.add(Task.createTask());
@@ -125,11 +125,6 @@ public class ToDoList {
                         for (int i = 0; i < fileOperations.counter(); i++) {
                             tasks.add(serialization.readFromTaskFile(DIR_NAME + i + "_task.txt"));
                             System.out.printf("\r % 5d %%   ", (i + 1) * 100 / fileOperations.counter());
-                            try {
-                                SaveThread.sleep(1500);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
                         }
                     case QUIT:
                         flag = -1;
