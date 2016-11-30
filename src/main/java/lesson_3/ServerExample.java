@@ -23,11 +23,16 @@ public class ServerExample {
                 clientHandler.start();
                 clients.add(clientHandler);
             }
-//            serverSocket.close();
-//            System.out.println("Server closed");
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    public ArrayList<String> clientList(){
+        ArrayList<String> contacts = new ArrayList<>();
+        for (int i = 0; i < clients.size(); i++) {
+            contacts.add(clients.get(i).getUserName());
+        }
+        return contacts;
     }
 
     public void sendToAll(final String message, final ClientHandler sender) {
@@ -43,10 +48,14 @@ public class ServerExample {
 
     }
 
-    public void sendToUser(final String message, final ClientHandler receiver) {
+    public void sendToUser(final String message, final String userName) {
         new Thread(new Runnable() {
             public void run() {
-                receiver.sendMessage(message);
+                for (ClientHandler c : clients) {
+                    if (c.getUserName().equals(userName)) {
+                        c.sendMessage(message);
+                    }
+                }
             }
         }).start();
     }
@@ -54,18 +63,4 @@ public class ServerExample {
     public void disconnectClient(ClientHandler clientHandler) {
         clients.remove(clientHandler);
     }
-
-    /*
-    1) В клиенте получение сообщений должно быть в фоновом потоке
-    2) Подумать над MSW
-    3) Первое сообщение от клиента - его Username
-    4) Отправка сообщений в личку:
-        Пользователь вводит "Hello" -> отправка всем
-        Пользователь вводит "@username: Hello" -> отправка Hello для username
-        Отправка сообщений в формате Json:
-            {
-                "receiver": "username",  (если null, то всем)
-                "body": "Hello"
-            }
-     */
 }

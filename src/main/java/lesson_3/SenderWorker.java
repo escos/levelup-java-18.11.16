@@ -1,5 +1,4 @@
 package lesson_3;
-
 import java.io.PrintWriter;
 import java.util.PriorityQueue;
 
@@ -10,7 +9,7 @@ public class SenderWorker extends Thread {
 
     public SenderWorker(PrintWriter writer) {
         this.writer = writer;
-        queue = new PriorityQueue<>();
+        queue = new PriorityQueue<String>();
     }
 
     @Override

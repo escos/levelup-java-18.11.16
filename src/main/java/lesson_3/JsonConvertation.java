@@ -6,6 +6,10 @@ public class JsonConvertation {
 
     private Gson gson = new Gson();
 
+    public static JsonConvertation instance;
+
+
+
     public Message parsefromJson(String jsonMessage) {
         return gson.fromJson(jsonMessage,Message.class);
     }
