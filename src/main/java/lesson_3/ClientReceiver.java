@@ -17,12 +17,13 @@ public class ClientReceiver extends Thread {
     @Override
     public void run() {
         try {
-            JsonConvertation jsonConvertation = new JsonConvertation();
             BufferedReader serverReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             while (!serverReader.readLine().equals(null)) {
-                Message inputMessage = jsonConvertation.parsefromJson(serverReader.readLine());
-                System.out.println(inputMessage.getSender()+"  "+inputMessage.getBody());
-                //System.out.println(serverReader.readLine());
+                Message inputMessage = JsonConvertation.getInstance().parsefromJson(serverReader.readLine());
+                if (inputMessage.getReceiver().equals("server")) {
+                    System.out.println(" User " + inputMessage.getBody());
+                } else
+                    System.out.println("Sender: " + inputMessage.getSender() + " Message: " + inputMessage.getBody());
             }
             serverReader.close();
             socket.close();
@@ -30,5 +31,4 @@ public class ClientReceiver extends Thread {
             e.printStackTrace();
         }
     }
-
 }

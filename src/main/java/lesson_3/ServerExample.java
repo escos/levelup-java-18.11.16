@@ -6,7 +6,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 public class ServerExample {
-    private ArrayList<ClientHandler> clients = new ArrayList<>();
+    private ArrayList<ClientHandler> clients = new ArrayList<ClientHandler>();
 
     public static void main(String[] args) {
         new ServerExample().start();
@@ -27,8 +27,9 @@ public class ServerExample {
             e.printStackTrace();
         }
     }
-    public ArrayList<String> clientList(){
-        ArrayList<String> contacts = new ArrayList<>();
+
+    public ArrayList<String> clientList() {
+        ArrayList<String> contacts = new ArrayList<String>();
         for (int i = 0; i < clients.size(); i++) {
             contacts.add(clients.get(i).getUserName());
         }

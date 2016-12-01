@@ -13,7 +13,6 @@ public class ClientExample {
     public static void main(String[] args) {
         try {
             Socket socket = new Socket(IP, PORT);
-            JsonConvertation jsonConvertation = new JsonConvertation();
             PrintWriter writer = new PrintWriter(socket.getOutputStream());
             BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
             ClientReceiver clientReceiver = new ClientReceiver(socket);
@@ -26,19 +25,19 @@ public class ClientExample {
                     int pos = inputConsole.indexOf(" ");
                     message.setSender(inputConsole.substring(0, pos));
                 } else message.setSender(inputConsole);
-                writer.println(jsonConvertation.saveToJson(message));
+                writer.println(JsonConvertation.getInstance().saveToJson(message));
                 writer.flush();
             }
             while (!(inputConsole = console.readLine()).equals("exit")) {
-                if (inputConsole.indexOf("@") == 0) {
+                if ((inputConsole.indexOf("@") == 0) && inputConsole.contains(":")) {
                     int pos = inputConsole.indexOf(":");
                     message.setReceiver(inputConsole.substring(1, pos));
-                    message.setBody(inputConsole.substring(pos+2));
+                    message.setBody(inputConsole.substring(pos + 1));
                 } else {
                     message.setBody(inputConsole);
                     message.setReceiver("all");
                 }
-                writer.println(jsonConvertation.saveToJson(message));
+                writer.println(JsonConvertation.getInstance().saveToJson(message));
                 writer.flush();
             }
             writer.close();

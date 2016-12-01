@@ -1,7 +1,5 @@
 package lesson_3;
 
-import com.github.escos.JsonConvert;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -27,38 +25,31 @@ public class ClientHandler extends Thread {
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(socket.getInputStream()));
             PrintWriter writer = new PrintWriter(socket.getOutputStream());
-            JsonConvertation jsonConvertation = new JsonConvertation();
             senderWorker = new SenderWorker(writer);
             senderWorker.start();
             String inputMessage;
 
             if ((inputMessage = reader.readLine()) != null) {
                 System.out.println(inputMessage);
-                Message message = jsonConvertation.parsefromJson(inputMessage);
+                Message message = JsonConvertation.getInstance().parsefromJson(inputMessage);
                 userName = message.getSender();
-                //server.sendToAll(message.getBody(), this);
             }
             while ((inputMessage = reader.readLine()) != null) {
                 System.out.println(inputMessage);
-                Message message = jsonConvertation.parsefromJson(inputMessage);
-                switch (message.getReceiver()) {
-                    case "all":
-                        server.sendToAll(jsonConvertation.saveToJson(message), this);
-                        break;
-                    case "list":
-                        ArrayList<String> clients = server.clientList();
-                        for (int i = 0; i < clients.size(); i++) {
-                            String user = message.getSender();
-                            message.setSender("USER-" + i);
-                            message.setBody(clients.get(i));
-                            System.out.println(jsonConvertation.saveToJson(message));
-                            server.sendToUser(jsonConvertation.saveToJson(message), user);
-                        }
-                        break;
-                    default:
-                        server.sendToUser(jsonConvertation.saveToJson(message), message.getReceiver());
-                        break;
+                Message message = JsonConvertation.getInstance().parsefromJson(inputMessage);
+                if (message.getReceiver().equals("all")) {
+                    server.sendToAll(JsonConvertation.getInstance().saveToJson(message), this);
                 }
+                if (message.getReceiver().equals("server")) {
+                    ArrayList<String> clients = server.clientList();
+                    for (int i = 0; i < clients.size(); i++) {
+                        String user = message.getSender();
+                        message.setBody(clients.get(i));
+                        System.out.println(JsonConvertation.getInstance().saveToJson(message));
+                        server.sendToUser(JsonConvertation.getInstance().saveToJson(message), user);
+                    }
+                }
+                server.sendToUser(JsonConvertation.getInstance().saveToJson(message), message.getReceiver());
             }
             server.disconnectClient(this);
             senderWorker.stopWorker();
